@@ -4,8 +4,7 @@ using namespace std;
 
 unsigned int hashTable::getPrime(int size) {
 		// list of primes
-		// unsigned int primes[7] = {40009, 80329, 160001, 320009, 640007, 1280023, 2400001};
-		unsigned int primes[7] = {3, 7, 11, 13, 17, 19, 23};
+		unsigned int primes[7] = {40009, 80329, 160001, 320009, 640007, 1280023, 2400001};
 		for (int i=0; i<7; i++){
 			if (primes[i] > size) {
 				return primes[i];
@@ -21,8 +20,9 @@ unsigned int hashTable::getPrime(int size) {
 hashTable::hashTable(int size){
 		capacity = hashTable::getPrime(size);
 		filled = 0;	
-		data.reserve(capacity);
+		data.resize(capacity);
 }
+
 
 
 int hashTable::hash(const string &key) {
@@ -58,37 +58,41 @@ int hashTable::insert(const string &key, void *pv) {
 	int hash = hashTable::hash(key);
 	while(data[hash].isOccupied) {
 		hash++;	
-		cout << "linear probing " << key << endl;
 	}
 	data[hash] = itm;	
-	filled++;
+	hashTable::filled++;
 	return 0;
 }
 
 int hashTable::findPos(const string &key) {
 	int hash = hashTable::hash(key);
-       	hashItem itm = data[hash];
-	while(itm.isOccupied && key!=itm.key){
-		hash++;
-		itm = data[hash];
-	}
-	if (key == itm.key) {
-		return hash;
+	if (data[hash].isOccupied) {
+		hashItem itm = data[hash];
+		while(itm.isOccupied && key!=itm.key){
+			hash++;
+			itm = data[hash];
+		}
+		if (key == itm.key) {
+			return hash;
+		}
 	}
 	return -1;
 }
 
 bool hashTable::rehash() {
 	// change the capacity
-	int currentCapacity = capacity;
-	capacity = getPrime(currentCapacity);
+	int oldCapacity = capacity;
+	hashTable::capacity = getPrime(oldCapacity);
 	vector<hashItem>oldData = data;
-	data.resize(capacity);
-	for (int i=0;i<currentCapacity;i++){
+	hashTable::filled = 0;
+	hashTable::data.clear();
+	hashTable::data.resize(capacity);
+	int redos = 0;
+	for (int i=0;i<oldCapacity;i++){
 		hashItem itm = oldData[i];
 		if (itm.isOccupied && !itm.isDeleted){
-			cout << "inserting LOOP" << endl;
-			insert(itm.key, itm.pv);
+			redos++;
+			int resp = insert(itm.key, itm.pv);
 			itm = {};
 		}
 	}
@@ -121,20 +125,3 @@ bool hashTable::remove(const string &key) {
 	return false;	
 }
 
-int main() {
-	hashTable test;
-	string str, str2, str3, str4;
-	str = "hellothis";
-	str2 = "str2";
-	str3 = "str3";
-	str4 = "str4";
-	cout << "inserting " << test.insert(str) << endl;
-	cout << "inserting " << test.insert(str2) << endl;
-	cout << "inserting " << test.insert(str3) << endl;
-	cout << "inserting " << test.insert(str4) << endl;
-	cout << "contains  " << test.contains(str) <<endl;
-	cout << "contains  " << test.contains(str2) <<endl;
-	cout << "contains  " << test.contains(str3) <<endl;
-	cout << "contains  " << test.contains(str4) <<endl;
-	return 0;
-}
