@@ -4,8 +4,8 @@ using namespace std;
 
 unsigned int hashTable::getPrime(int size) {
 		// list of primes
-		unsigned int primes[7] = {40009, 80329, 160001, 320009, 640007, 1280023, 2400001};
-		for (int i=0; i<7; i++){
+		unsigned int primes[9] = {40009, 80329, 160001, 320009, 640007, 1280023, 2400001, 4500007, 9003607};
+		for (int i=0; i<9; i++){
 			if (primes[i] > size) {
 				return primes[i];
 			}
@@ -58,6 +58,8 @@ int hashTable::insert(const string &key, void *pv) {
 	int hash = hashTable::hash(key);
 	while(data[hash].isOccupied) {
 		hash++;	
+		if (hash == hashTable::capacity)
+			hash = 0;
 	}
 	data[hash] = itm;	
 	hashTable::filled++;
@@ -70,6 +72,8 @@ int hashTable::findPos(const string &key) {
 		hashItem itm = data[hash];
 		while(itm.isOccupied && key!=itm.key){
 			hash++;
+			if (hash == hashTable::capacity)
+				hash = 0;
 			itm = data[hash];
 		}
 		if (key == itm.key) {
@@ -87,11 +91,9 @@ bool hashTable::rehash() {
 	hashTable::filled = 0;
 	hashTable::data.clear();
 	hashTable::data.resize(capacity);
-	int redos = 0;
 	for (int i=0;i<oldCapacity;i++){
 		hashItem itm = oldData[i];
 		if (itm.isOccupied && !itm.isDeleted){
-			redos++;
 			int resp = insert(itm.key, itm.pv);
 			itm = {};
 		}

@@ -23,23 +23,26 @@ hashTable loadDictionary(hashTable dict, char * fileName) {
 }
 
 void checkFile(hashTable dict, char * inputFile, char * outputFile) {
-	char wordBuffer[20];
+	char wordBuffer[20]="";
 	char c;
-	char fileBuffer[4096];
+	char fileBuffer[4096]="";
 	int numRead;
 	int j=0;
 	int line=1;
 	bool response;
+	unsigned long counts = 0;
 	// open each file
 	FILE * inputF = fopen(inputFile, "r");
 	FILE * outputF = fopen(outputFile, "w");
 	// start moving through the input file
 	while((numRead = fread(fileBuffer, 1, 4096, inputF)) > 0) {
+		counts++;
+		cout << counts << endl;
 		for (int i=0;i<numRead;i++){
 			c = tolower(fileBuffer[i]);
 			// check if it is valid
 			// not valid dump the wordBuffer make sure sure it is correct	
-			if(islower(c) || isdigit(c) || c == 45 || c == 39) {
+			if(islower(c) || c == 45 || c == 39) {
 				if(j<20)
 					wordBuffer[j] = c;
 				if(j == 20)
@@ -60,7 +63,6 @@ void checkFile(hashTable dict, char * inputFile, char * outputFile) {
 					line++;
 
 			}
-
 		}
 	};
 
