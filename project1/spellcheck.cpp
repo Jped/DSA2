@@ -26,7 +26,7 @@ void checkFile(hashTable dict, char * inputFile, char * outputFile) {
 	char wordBuffer[20]="";
 	char c;
 	char fileBuffer[4096]="";
-	int numRead;
+	int numRead=0;
 	int j=0;
 	int line=1;
 	bool response;
@@ -43,7 +43,7 @@ void checkFile(hashTable dict, char * inputFile, char * outputFile) {
 			// check if it is valid
 			// not valid dump the wordBuffer make sure sure it is correct	
 			if(islower(c) || c == 45 || c == 39) {
-				if(j<20)
+				if(j < 20)
 					wordBuffer[j] = c;
 				if(j == 20)
 				       	fprintf(outputF, "Long word at line %d, starts: %s\n", line, wordBuffer);
