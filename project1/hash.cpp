@@ -10,42 +10,38 @@ unsigned int hashTable::getPrime(int size) {
 				return primes[i];
 			}
 		}
-		try{
-			throw 0;
-		} catch(int e){
-			cout << "hash table size is too big"; 
-		}
+		return 0;	
 }	
 
 hashTable::hashTable(int size){
-		capacity = hashTable::getPrime(size);
-		filled = 0;	
-		data.resize(capacity);
+		hashTable::capacity = hashTable::getPrime(size);
+		hashTable::filled = 0;	
+		data.resize(hashTable::capacity);
 }
 
 
 
-int hashTable::hash(const string &key) {
+unsigned int hashTable::hash(const string &key) {
 	// adapted from Data Structures and Algorithm Analysis 3rd edition
-	int val = 0;
+	unsigned int val = 0;
 	for (int i=0; i<key.length(); i++){
 		val = 37 * val + key[i];
 	}
 
 	val %= capacity;
-	if (val<0)
-		val += capacity;
+	if (val < 0)
+		val += hashTable::capacity;
 	return val;
 }
 
 
 int hashTable::insert(const string &key, void *pv) {
-	int loc = findPos(key);
+	int loc = hashTable::findPos(key);
 	// check if itm already exsists
 	if (loc > -1)
 		return 1; 
-	if ((2*filled) > capacity) {
-		bool resp = rehash();
+	if ((2 * hashTable::filled) > hashTable::capacity) {
+		bool resp = hashTable::rehash();
 		if (!resp)
 			return 2;
 	}
@@ -55,7 +51,7 @@ int hashTable::insert(const string &key, void *pv) {
 	itm.isOccupied = true;
 	itm.isDeleted = false;
 	itm.pv = pv;
-	int hash = hashTable::hash(key);
+	unsigned int hash = hashTable::hash(key);
 	while(data[hash].isOccupied) {
 		hash++;	
 		if (hash == hashTable::capacity)
@@ -67,7 +63,7 @@ int hashTable::insert(const string &key, void *pv) {
 }
 
 int hashTable::findPos(const string &key) {
-	int hash = hashTable::hash(key);
+	unsigned int hash = hashTable::hash(key);
 	if (data[hash].isOccupied) {
 		hashItem itm = data[hash];
 		while(itm.isOccupied && key!=itm.key){
@@ -85,13 +81,13 @@ int hashTable::findPos(const string &key) {
 
 bool hashTable::rehash() {
 	// change the capacity
-	int oldCapacity = capacity;
+	int oldCapacity = hashTable::capacity;
 	hashTable::capacity = getPrime(oldCapacity);
-	vector<hashItem>oldData = data;
+	vector<hashItem>oldData = hashTable::data;
 	hashTable::filled = 0;
 	hashTable::data.clear();
-	hashTable::data.resize(capacity);
-	for (int i=0;i<oldCapacity;i++){
+	hashTable::data.resize(hashTable::capacity);
+	for (int i=0; i<oldCapacity; i++){
 		hashItem itm = oldData[i];
 		if (itm.isOccupied && !itm.isDeleted){
 			int resp = insert(itm.key, itm.pv);
@@ -103,25 +99,25 @@ bool hashTable::rehash() {
 }
 
 bool hashTable::contains(const string &key) {
-	int hash = findPos(key);
+	int hash = hashTable::findPos(key);
 	if (		
 			hash > -1 
-			&& data[hash].isOccupied 
-			&& !data[hash].isDeleted 
-			&& data[hash].key == key
+			&& hashTable::data[hash].isOccupied 
+			&& !hashTable::data[hash].isDeleted 
+			&& hashTable::data[hash].key == key
 	   ) 
 		return true;
 	return false;
 }
 
 bool hashTable::remove(const string &key) {
-	int hash = findPos(key);
+	int hash = hashTable::findPos(key);
 	if (
 		hash >-1
-		&& data[hash].isOccupied
-		&& data[hash].key == key
+		&& hashTable::data[hash].isOccupied
+		&& hashTable::data[hash].key == key
 	   ) {
-		data[hash].isDeleted = true;
+		hashTable::data[hash].isDeleted = true;
 		return true;
 	}
 	return false;	

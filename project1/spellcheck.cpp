@@ -1,13 +1,14 @@
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <ctime>
-#include <fstream>
 #include "hash.h"
+#include <string>
 
 using namespace std;
 
 
-hashTable loadDictionary(hashTable dict, char * fileName) {
+hashTable loadDictionary(hashTable dict, string fileName) {
 	string line;
 	ifstream dictFile(fileName);
 	if(dictFile.is_open()) {
@@ -17,59 +18,58 @@ hashTable loadDictionary(hashTable dict, char * fileName) {
 		}
 		dictFile.close();
 	} else {
-		cout << "Error opening dictioanry " << fileName << endl;;
+		cout << "Error opening dictionary file " << fileName << endl;;
 	}
 	return dict;
 }
 
-void checkFile(hashTable dict, char * inputFile, char * outputFile) {
-	char wordBuffer[20]="";
+void checkFile(hashTable dict, string inputFile, string outputFile) {
+	string wordBuffer;
 	char c;
-	char fileBuffer[4096]="";
+	char fileBuffer[4096];
 	int numRead=0;
-	int j=0;
 	int line=1;
-	bool response;
-	unsigned long counts = 0;
-	// open each file
-	FILE * inputF = fopen(inputFile, "r");
-	FILE * outputF = fopen(outputFile, "w");
+	bool response, isDigit, isTwenty;
+	ifstream inputF;
+	ofstream outputF;
+	inputF.open(inputFile);
+	inputF.getline(fileBuffer, 4096);
+	outputF.open(outputFile);
 	// start moving through the input file
-	while((numRead = fread(fileBuffer, 1, 4096, inputF)) > 0) {
-		counts++;
-		cout << counts << endl;
-		for (int i=0;i<numRead;i++){
+	while ((numRead = inputF.gcount()) > 0){
+		for (int i=0; i<numRead; i++){
 			c = tolower(fileBuffer[i]);
 			// check if it is valid
 			// not valid dump the wordBuffer make sure sure it is correct	
-			if(islower(c) || c == 45 || c == 39) {
-				if(j < 20)
-					wordBuffer[j] = c;
-				if(j == 20)
-				       	fprintf(outputF, "Long word at line %d, starts: %s\n", line, wordBuffer);
-				j++;
+			if(islower(c) || isdigit(c) || c == 45 || c == 39) {
+				wordBuffer += c;
+				if(wordBuffer.size() == 21 && !isTwenty){
+					isTwenty = true;
+					outputF << "Long word at line " << line << ", starts: " <<  wordBuffer.substr(0,20) << endl;
+				}if(isdigit(c))
+					isDigit = true;
 			} else {
 				// check if the word is correct, if not print error
-				// make it equal to 20 for 19 letter word that gets j++
-				if(j>0 && j<=20) {
+				if(wordBuffer.size() > 0 && !isTwenty && !isDigit) {
 					response = dict.contains(wordBuffer);
 					if(!response)
-						fprintf(outputF, "Unknown word at line %d: %s\n", line, wordBuffer);
+						outputF << "Unknown word at line " << line << ": " << wordBuffer <<endl;
 				}
-				for(int i=0;i<=j;i++)
-					wordBuffer[i]='\0';
-				j=0;
-				if(c == 10)
-					line++;
+				wordBuffer.clear();	
+				isDigit = false;
+				isTwenty = false;
 
 			}
 		}
+		line++;
+		inputF.getline(fileBuffer, 4096);
 	};
-
+	inputF.close();
+	outputF.close();	
 }
 
 int main() {
-       	char dictionaryFile[1024], inputFile[1024], outputFile[1024];	
+       	std::string dictionaryFile, inputFile, outputFile;
 	hashTable dict;
 	cout << "Enter name of dictionary: ";
 	cin >> dictionaryFile;	
@@ -88,7 +88,6 @@ int main() {
 	checkFile(dict, inputFile, outputFile);
 	t2 = clock();
 	time = ((double) (t2 - t1)) / CLOCKS_PER_SEC;
-	cout << "Total time (in seconds) to check document: " << time <<endl;;
-
+	cout << "Total time (in seconds) to check document: " << time << endl;;
 }
 
