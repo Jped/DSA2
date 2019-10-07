@@ -1,17 +1,20 @@
 useHeap.exe: useHeap.o hash.o heap.o
-	g++ -o useHeap.exe useHeap.o heap.o hash.o
+	clang++ -o useHeap.exe useHeap.o heap.o hash.o
 
 useHeap.o: useHeap.cpp
-	g++ -c useHeap.cpp
+	clang++ -c useHeap.cpp
 
 heap.o: heap.cpp heap.h
-	g++ -c heap.cpp
+	clang++ -c heap.cpp
 
 hash.o: hash.cpp hash.h
-	g++ -c hash.cpp
+	clang++ -c hash.cpp
 
-debug:
-	g++ -g -o useHeapDebug.exe useHeap.cpp heap.cpp hash.cpp
+debugmem:
+	clang++ -Wall -Wextra -fsanitize=memory -g -o useHeapDebug.exe useHeap.cpp heap.cpp hash.cpp
+
+debugaddr:
+	clang++ -Wall -Wextra -fsanitize=address -g -o useHeapDebug.exe useHeap.cpp heap.cpp hash.cpp
 
 clean:
 	rm -f *.exe *.o *.stackdump *~

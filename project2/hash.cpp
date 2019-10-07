@@ -27,8 +27,7 @@ unsigned int hashTable::hash(const string &key) {
 	for (int i=0; i<key.length(); i++){
 		val = 37 * val + key[i];
 	}
-
-	val %= capacity;
+	val %= hashTable::capacity;
 	if (val < 0)
 		val += hashTable::capacity;
 	return val;
@@ -140,6 +139,8 @@ void * hashTable::getPointer(const std::string &key, bool *b){
 			*b = false;
 		return nullptr;
 	}
-	*b = true;
+
+	if(b)
+		*b = true;
 	return hashTable::data[hash].pv;
 }
