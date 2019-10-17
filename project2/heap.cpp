@@ -1,13 +1,16 @@
 #include "heap.h"
-#include <climits>
 #include <cstring>
 #include <iostream>
+#include <sstream>
+
 
 heap::heap(int capacity) { 
-	heap::capacity = capacity;
-	// zero is kept empty, so size starts at 1
-	heap::current_size = 1;
-	heap::data.resize(capacity);
+	// add one because we dont use index zero
+	heap::capacity = capacity + 1;
+	// zero is kept empty, so size starts at zero
+	// before we insert we increment by one
+	heap::current_size = 0;
+	heap::data.resize(heap::capacity);
 	hashTable hash_map(capacity);
 	heap::mapping = hash_map;
 } 
@@ -15,23 +18,28 @@ heap::heap(int capacity) {
 
 
 int heap::insert(const std:: string &id, int key, void *pv){
-	if (heap::current_size >= heap::capacity)
+	if ((heap::current_size + 1) == heap::capacity)
 		return 1;
 	if (heap::mapping.contains(id))
 		return 2;
-	
 	// create the node
 	heapItem newItem;
 	newItem.id = id;
 	newItem.key = key;
 	newItem.pv = pv;
-	// place it into the end
+	// move one and place it into the end
+	heap::current_size++;
 	heap::data[heap::current_size] = newItem;
 	// add it to  the hashtable
-	heap::mapping.insert(id, pv=&heap::data[current_size]);
-	// perclate up
+	int hash_resp = heap::mapping.insert(id, pv=&heap::data[heap::current_size]);
+	if (hash_resp != 0){
+		std::stringstream error_string;
+		error_string << "error while inserting into hash map error: " << hash_resp << " current_size " << heap::current_size << "\n"; 
+		perror(error_string.str().c_str());
+		return 2;
+	}
+	// percolate up
 	heap::percolateUp(heap::current_size);
-	heap::current_size++;
 	return 0;
 }
 
@@ -55,11 +63,16 @@ int heap::setKey(const std::string &id, int key){
 
 
 int heap::deleteMin(std::string *p_id, int *p_key, void *pp_data) {
-	// if current size is 1, the heap is empty
-	if (heap::current_size <= 1)
+	if (heap::current_size == 0)
 		return 1;
 	//remove min element from the hashtable.
-	heap::mapping.remove(heap::data[1].id);
+	bool hash_resp = heap::mapping.remove(heap::data[1].id);
+	if (!hash_resp){
+		std::stringstream error_string;
+		error_string << "error while removing " << heap::data[1].id << " from hash table " << hash_resp << "\n";
+		perror(error_string.str().c_str());
+		// will not return out as this is an error with the hash table and not the heap
+	}
 	if (p_id != nullptr){
 		*p_id = heap::data[1].id;
 	}if (p_key != nullptr){
@@ -68,12 +81,10 @@ int heap::deleteMin(std::string *p_id, int *p_key, void *pp_data) {
 		pp_data = heap::data[1].pv;
 	}
 	//move last item into root
-	heap::data[1] = heap::data[current_size-1];
-	current_size--;
-	
+	heap::data[1] = heap::data[heap::current_size];
+	heap::current_size--;
 	//percolate down
 	heap::percolateDown(1);
-
 	return 0;
 }
 
@@ -103,12 +114,17 @@ void heap::percolateUp(int pos_cur){
 	// first hold on to what is at pos cur
 	heapItem item = heap::data[pos_cur];
 	// then keep on moving the hole up as long as heapItem.key is less than the value
-	
+	int resp;
 	for(;pos_cur>1 && item.key <= heap::data[pos_cur/2].key; pos_cur=pos_cur/2){
 		// keep on moving the elements down
 		heap::data[pos_cur] = heap::data[pos_cur/2];
 		// update hash table
-		heap::mapping.setPointer(heap::data[pos_cur].id, &heap::data[pos_cur]);
+		resp = heap::mapping.setPointer(heap::data[pos_cur].id, &heap::data[pos_cur]);
+		if (resp !=0) {
+			std::stringstream error_string;
+			error_string << "error: percolate up set pointer failed" << heap::data[pos_cur].id <<"\n";	
+			perror(error_string.str().c_str());
+		}
 	}
 	heap::data[pos_cur] = item;
 	heap::mapping.setPointer(item.id, &heap::data[pos_cur]);
@@ -122,7 +138,7 @@ void heap::percolateDown(int pos_cur){
 
 	// now we are going to move in the reverse direction are percolate up to
 	// find the proper place to put this element
-	int pos_child;
+	int pos_child, resp;
 	for(;pos_cur*2 <= heap::current_size; pos_cur=pos_child){
 		pos_child = 2 * pos_cur;
 		// pick the lower of the two children
@@ -134,7 +150,12 @@ void heap::percolateDown(int pos_cur){
 		if (heap::data[pos_child].key < item.key) {
 			heap::data[pos_cur] = heap::data[pos_child];
 			//update the hash table
-			heap::mapping.setPointer(heap::data[pos_cur].id, &heap::data[pos_cur]);
+			resp = heap::mapping.setPointer(heap::data[pos_cur].id, &heap::data[pos_cur]);
+			if (resp !=0) {
+				std::stringstream error_string;
+				error_string << "error: percolate down set pointer failed" << heap::data[pos_cur].id <<"\n";
+				perror(error_string.str().c_str());
+			}
 		} else
 			break;
 	}
@@ -149,5 +170,11 @@ int heap::getPos(heapItem *pn){
 }
 
 
-
+void heap::printElements() {
+	std::cout << "current size of heap: " << heap::current_size << std::endl; 
+	for (int i=1; i<heap::current_size; i++){
+		std::cout <<i << " " << heap::data[i].id << ":" << heap::data[i].key << " ";
+	}
+	std::cout << "\n";
+}
 

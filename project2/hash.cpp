@@ -35,9 +35,9 @@ unsigned int hashTable::hash(const string &key) {
 
 
 int hashTable::insert(const string &key, void *pv) {
-	int loc = hashTable::findPos(key);
+	bool contain = hashTable::contains(key);
 	// check if itm already exsists
-	if (loc > -1)
+	if (contain)
 		return 1; 
 	if ((2 * hashTable::filled) > hashTable::capacity) {
 		bool resp = hashTable::rehash();
@@ -51,11 +51,7 @@ int hashTable::insert(const string &key, void *pv) {
 	itm.isDeleted = false;
 	itm.pv = pv;
 	unsigned int hash = hashTable::hash(key);
-	while(data[hash].isOccupied) {
-		hash++;	
-		if (hash == hashTable::capacity)
-			hash = 0;
-	}
+	hash = hashTable::linearProbe(key, hash);
 	data[hash] = itm;	
 	hashTable::filled++;
 	return 0;
@@ -64,18 +60,20 @@ int hashTable::insert(const string &key, void *pv) {
 int hashTable::findPos(const string &key) {
 	unsigned int hash = hashTable::hash(key);
 	if (data[hash].isOccupied) {
-		hashItem itm = data[hash];
-		while(itm.isOccupied && key!=itm.key){
-			hash++;
-			if (hash == hashTable::capacity)
-				hash = 0;
-			itm = data[hash];
-		}
-		if (key == itm.key) {
+		hash = hashTable::linearProbe(key, hash);	
+		if (key == hashTable::data[hash].key) {
 			return hash;
 		}
 	}
 	return -1;
+}
+
+unsigned int hashTable::linearProbe(const string &key, unsigned int hash) {
+	while(hashTable::data[hash].isOccupied && key!=hashTable::data[hash].key){
+		hash++;
+		hash = hash % hashTable::capacity;
+	}
+	return hash;
 }
 
 bool hashTable::rehash() {

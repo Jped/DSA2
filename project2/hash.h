@@ -80,6 +80,10 @@ class hashTable {
   // Return a prime number at least as large as size.
   // Uses a precomputed sequence of selected prime numbers.
   static unsigned int getPrime(int size);
+
+  // Linear Probe routine: if finds the key returns that
+  // otherwise returns the first open spot
+  unsigned int linearProbe(const std::string &key, unsigned int hash);
 };
 
 #endif //_HASH_H
