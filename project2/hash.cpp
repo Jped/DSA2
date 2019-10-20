@@ -85,10 +85,9 @@ bool hashTable::rehash() {
 	hashTable::data.clear();
 	hashTable::data.resize(hashTable::capacity);
 	for (int i=0; i<oldCapacity; i++){
-		hashItem itm = oldData[i];
-		if (itm.isOccupied && !itm.isDeleted){
-			int resp = insert(itm.key, itm.pv);
-			itm = {};
+		if (oldData[i].isOccupied && !oldData[i].isDeleted){
+			insert(oldData[i].key, oldData[i].pv);
+			oldData[i] = {};
 		}
 	}
 	oldData.clear();
