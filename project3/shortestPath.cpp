@@ -1,15 +1,13 @@
 #include <ctime>
 #include <climits>
-#include <string>
 #include <stdio.h>
 #include <sstream>
+#include <string>
 #include <list>
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include "heap.h"
-
-
 
 struct edge {
 	std::string vertexName;
@@ -31,7 +29,10 @@ struct adjList {
 	int numVertices=0;
 };
 
-adjList loadAdjacencyList(adjList graph, std::ifstream &graphFile) {
+
+
+
+adjList loadGraph(adjList graph, std::ifstream &graphFile) {
 	// open the file iterate line by line
 	std::string line;
 	int currentIndex = 0;
@@ -44,17 +45,17 @@ adjList loadAdjacencyList(adjList graph, std::ifstream &graphFile) {
 		// insert both into heap (disregard if already in the heap)
 		graph.vertices -> insert(startingVertex, INT_MAX);
 		graph.vertices -> insert(destinationVertex, INT_MAX);
-		int cost = std::stoi(line.substr(secondSpacePos + 1, line.length() - secondSpacePos - 1));	
 		edge e;
 		e.vertexName = destinationVertex;
-		e.cost = cost;
+		e.cost = std::stoi(line.substr(secondSpacePos + 1, line.length() - secondSpacePos - 1));
 		// now we check if this exsists, if it does we add to the list otherwise we add a new entry
+		int * index;
 		if(graph.map->contains(startingVertex)) {
-			int * index = (int *) graph.map->getPointer(startingVertex);
+			index = (int *) graph.map->getPointer(startingVertex);
 		       	graph.vertexList[*index].adjEdges.push_back(e);	
 		}else{
 			// insert with pv being the index we are adding it to
-			int * index = (int *) malloc(sizeof (int));
+			index = (int *) malloc(sizeof (int));
 			*index = currentIndex;
 			if(graph.map->insert(startingVertex, index) != 0)
 				perror("hash insert failed");
@@ -68,7 +69,7 @@ adjList loadAdjacencyList(adjList graph, std::ifstream &graphFile) {
 			graph.numVertices++;
 		}
 		if(!graph.map->contains(destinationVertex)){
-			int * index = (int *) malloc(sizeof (int));
+			index = (int *) malloc(sizeof (int));
 			*index = currentIndex;
 			if(graph.map->insert(destinationVertex, index) != 0)
 				perror("hash insert failed");
@@ -98,12 +99,6 @@ void printAdjList(adjList graph) {
 	}
 }
 
-void printCosts(adjList graph) {
-	for (int i=0; i<graph.numVertices; i++) {
-		std::cout << " " << graph.vertexList[i].vertexName << ": " << graph.vertexList[i].distance;
-	}
-	std::cout <<"\n";
-}
 	
 adjList performDijkstra(adjList graph, std::string startingVertex) {
 	std::string * currVertexName = new std::string;
@@ -121,7 +116,7 @@ adjList performDijkstra(adjList graph, std::string startingVertex) {
 		for(auto const& edge: graph.vertexList[index].adjEdges){
 			//account for overflow
 			if(*distance == INT_MAX)
-				newDistance = *distance;
+				newDistance = INT_MAX;
 			else
 				newDistance = *distance + edge.cost;
 			// get index for destination vertex
@@ -135,12 +130,14 @@ adjList performDijkstra(adjList graph, std::string startingVertex) {
 	}	
 	return graph;
 }
+
 void printShortestPath(adjList graph, std::string startingVertex, std::string outFileName) {
 	std::ofstream outFile;
 	outFile.open(outFileName);	
 	for(int i=0; i<graph.numVertices; i++){
 		std::string path = "";
 		vertex * pv = graph.vertexList[i].previous;
+		// do this check to prevent infinite loop with setting pv to itself
 		if (graph.vertexList[i].vertexName == startingVertex) {
 			outFile << startingVertex + ": 0 [" + startingVertex  + "]\n";
 			continue;
@@ -177,7 +174,7 @@ int main () {
 	heap vertices(capacity);
 	graph.vertices = &vertices;
 	graph.vertexList.resize(capacity);
-	graph = loadAdjacencyList(graph, graphFile);
+	graph = loadGraph(graph, graphFile);
 	std::string startingVertex;
 	int index;
 	do{
