@@ -12,15 +12,12 @@ std::vector<std::vector<int>> dynamicHelperFunction(std::vector<std::vector<int>
 	}
 	int string1Length = string1.length();
 	int string2Length = string2.length();
-	//std::cout << "STRING 1 " << string1 << " STRING 2 " << string2 << " MERGEDSTRING " << mergedString << "\n"; 
 	// check to call the dynamicHelper again
 	if (string1Length != 0 && mergedString.back() == string1.back() && dpMatrix[string1Length-1][string2Length] != 1){
-		//std::cout << " match 1 \n ";
 		dpMatrix[string1Length-1][string2Length] = 1;
 		dpMatrix = dynamicHelperFunction(dpMatrix, string1.substr(0,string1Length-1), string2, mergedString.substr(0, mergedString.length()-1));
 	}
 	if (string2Length !=0 && mergedString.back() == string2.back() && dpMatrix[string1Length][string2Length-1] != 1){
-		//std::cout << " match 2 \n";
 		dpMatrix[string1Length][string2Length-1] = 1;
 		dpMatrix = dynamicHelperFunction(dpMatrix,string1, string2.substr(0,string2Length-1), mergedString.substr(0, mergedString.length()-1));
 	}
@@ -33,10 +30,10 @@ std::string printSolution(std::vector<std::vector<int>> dpMatrix, std::string st
 	int j=0;
 	while(1){
 		//always perfer to go down the rows
-		if(i<=string1.length() && dpMatrix[i+1][j]){
+		if(i<string1.length() && dpMatrix[i+1][j]){
 			solution.push_back(toupper(string1[i]));
 			i++;
-		}else if (j<=string2.length() && dpMatrix[i][j+1]){
+		}else if (j<string2.length() && dpMatrix[i][j+1]){
 			solution.push_back(string2[j]);
 			j++;
 		}else{
@@ -58,17 +55,17 @@ void isInterpolation(std::string string1, std::string string2, std::string merge
 	for (int i=0; i<=string1.length(); i++)
 		dpMatrix[i].resize(string2.length()+1);
 	// call dynamicHelper function
-	dpMatrix = dynamicHelperFunction(dpMatrix, string1, string2, mergedString);
-	// check 0,0 position
-	std::ofstream outputFile(outFileName);
-	for (int i=0; i<=string1.length(); i++){
+	if (string1.length() + string2.length() == mergedString.length())
+		dpMatrix = dynamicHelperFunction(dpMatrix, string1, string2, mergedString);
+	std::ofstream outputFile(outFileName, std::ofstream::out | std::ofstream::app);
+	/*for (int i=0; i<=string1.length(); i++){
 		std::cout << "----------------------------------\n";
 		std::cout << "| ";
 		for(int j=0; j<=string2.length(); j++) {
 			std::cout << dpMatrix[i][j] << " | ";
 		}
 		std::cout <<"\n";
-	}
+	}*/
 	if (dpMatrix[0][0] == 1)
 		outputFile << printSolution(dpMatrix, string1, string2) << "\n";
 	else
